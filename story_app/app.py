@@ -6,7 +6,6 @@ from PIL import Image, UnidentifiedImageError
 
 st.set_page_config(page_title="Storytelling App", page_icon="📖")
 
-# Detect root directory where the script runs
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def load_story(file_path):
@@ -16,16 +15,14 @@ def load_story(file_path):
 def generate_tts(text, lang="en"):
     tts = gTTS(text=text, lang=lang)
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-    temp_file.close()  # Close the file so gTTS can write to it
+    temp_file.close()
     tts.save(temp_file.name)
     return temp_file.name
 
 st.title("📖 Minimal Storytelling App")
 
-# Build absolute path to 'stories' folder
 stories_dir = os.path.join(ROOT_DIR, "stories")
 
-# Debug info — optional, remove if you want
 st.write(f"Looking for stories in: `{stories_dir}`")
 
 if not os.path.isdir(stories_dir):
@@ -40,28 +37,17 @@ else:
         if story_choice:
             story_path = os.path.join(stories_dir, story_choice)
             scenes = load_story(story_path)
+            full_story = "\n\n".join(scenes)
 
-            # Background music path
             bg_music_path = os.path.join(ROOT_DIR, "static", "soft_music.mp3")
             if os.path.exists(bg_music_path):
                 st.audio(bg_music_path, format="audio/mp3", start_time=0)
 
-            for i, scene in enumerate(scenes):
-                st.subheader(f"Scene {i+1}")
+            st.write(full_story)
 
-                img_path = os.path.join(ROOT_DIR, "static", f"scene{i+1}.jpg")
-                if os.path.exists(img_path):
-                    try:
-                        img = Image.open(img_path)
-                        st.image(img, use_container_width=True)
-                    except UnidentifiedImageError:
-                        st.warning(f"Skipping invalid image at {img_path}")
-
-                st.write(scene)
-
-                if st.button(f"▶ Play Narration Scene {i+1}", key=f"play_{i}"):
-                    audio_file = generate_tts(scene)
-                    st.write(f"Generated audio file: {audio_file} (size: {os.path.getsize(audio_file)} bytes)")
-                    with open(audio_file, "rb") as f:
-                        audio_bytes = f.read()
-                    st.audio(audio_bytes, format="audio/mp3")
+            if st.button("▶ Play Full Story Narration"):
+                audio_file = generate_tts(full_story)
+                st.write(f"Generated audio file: {audio_file} (size: {os.path.getsize(audio_file)} bytes)")
+                with open(audio_file, "rb") as f:
+                    audio_bytes = f.read()
+                st.audio(audio_bytes, format="audio/mp3")
