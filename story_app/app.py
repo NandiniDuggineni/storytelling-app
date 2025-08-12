@@ -33,4 +33,28 @@ else:
     if not story_files:
         st.warning(f"No story files found in `{stories_dir}`.")
     else:
-        story_choice = st.selectbox("Choose a Story:", stor_
+        story_choice = st.selectbox("Choose a Story:", story_files)
+
+        if story_choice:
+            story_path = os.path.join(stories_dir, story_choice)
+            scenes = load_story(story_path)
+
+            # Background music path
+            bg_music_path = os.path.join(ROOT_DIR, "static", "soft_music.mp3")
+            if os.path.exists(bg_music_path):
+                st.audio(bg_music_path, format="audio/mp3", start_time=0)
+
+            for i, scene in enumerate(scenes):
+                st.subheader(f"Scene {i+1}")
+
+                img_path = os.path.join(ROOT_DIR, "static", f"scene{i+1}.jpg")
+                if os.path.exists(img_path):
+                    st.image(img_path, use_column_width=True)
+
+                st.write(scene)
+
+                if st.button(f"▶ Play Narration Scene {i+1}", key=f"play_{i}"):
+                    audio_file = generate_tts(scene)
+                    with open(audio_file, "rb") as f:
+                        audio_bytes = f.read()
+                    st.audio(audio_bytes, format="audio/mp3")
